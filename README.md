@@ -2,17 +2,18 @@
 * Hudi = Hadoop Upserts and Incrementals
 * If you don't know, I love Hadoop especially HDFS.
 * This repository is my self study to explore Hudi features.
-* This is absed on Hudi spark quick start.
+* This is based on Hudi spark quick start.
     * https://hudi.apache.org/docs/quick-start-guide/
 
-## Hudi setup
+## Environment setup
 ### Spark setup
 ```bash
 pushd /tmp/
 wget https://archive.apache.org/dist/spark/spark-3.3.2/spark-3.3.2-bin-hadoop3.tgz
 tar -xzvf spark-3.3.2-bin-hadoop3.tgz
 sudo mv spark-3.3.2-bin-hadoop3 /opt/spark-3.3.2
-echo 'export SPARK_HOME=/opt/spark-3.3.2' >> ~/.bashrc
+sudo ln -s /opt/spark-3.3.2 /opt/spark
+echo 'export SPARK_HOME=/opt/spark' >> ~/.bashrc
 rm -rf spark-3.3.2-bin-hadoop3.tgz
 popd
 ```
@@ -21,10 +22,9 @@ popd
 ```bash
 # We are going with Java 11 this time.
 sudo apt-get install openjdk-11-jdk
-# /usr/lib/jvm/java-11-openjdk-amd64/bin/java
-# /usr/lib/jvm/java-17-openjdk-amd64/bin/java
-# /usr/lib/jvm/jdk1.8.0_421/bin/java
-sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java
+# Switch to openjdk-11-jdk.
+sudo update-alternatives --config java 
+sudo update-alternatives --config javac 
 java -version
 export JAVA_HOME=$(realpath $(dirname $(realpath $(which java)))/..)
 ```
@@ -39,11 +39,13 @@ scala -version
 ### Hadoop setup
 ```bash
 # Download Hadoop release.
+pushd /tmp/
 wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz ;
 # Extract it
 tar -xzvf hadoop-3.4.0.tar.gz ;
 sudo mv hadoop-3.4.0 /opt/hadoop-3.4.0 ;
 sudo ln -s /opt/hadoop-3.4.0 /opt/hadoop ;
+rm -rf hadoop-3.4.0.tar.gz
 
 # Add Hadoop to path
 echo 'export HADOOP_HOME=/opt/hadoop' >> ~/.bashrc
@@ -51,6 +53,8 @@ echo 'export PATH=$PATH:$HADOOP_HOME/bin' >> ~/.bashrc
 echo 'export SPARK_DIST_CLASSPATH=$(hadoop classpath)' >> ~/.bashrc
 # Restart shell or source .bashrc
 source ~/.bashrc
+rm -rf 
+popd
 ```
 
 ### Jupyter Scala kernel
@@ -62,8 +66,6 @@ cs launch --use-bootstrap almond --scala 2.12.15 -- --install --force
 ```bash
 wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/org/apache/hudi/hudi-spark3-bundle_2.12/1.0.0/hudi-spark3-bundle_2.12-1.0.0.jar
 wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/org/apache/spark/spark-hive_2.12/3.3.2/spark-hive_2.12-3.3.2.jar
-# For CustomMergeIntoConnector
-wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/org/apache/hudi/hudi-common/1.0.0/hudi-common-1.0.0.jar
 ```
 
 ## Prework.
@@ -76,12 +78,13 @@ wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/org/apache/hudi/hudi-
     * Make sure the library is in the class path.
     * Run:
         ```bash
-        javac -cp "${SPARK_HOME}/jars/*:" -d out -sourcepath src $(find src/main/java -name "*.java")
+        javac -cp "${SPARK_HOME}/jars/avro-1.11.0.jar:${SPARK_HOME}/jars/hudi-spark3-bundle_2.12-1.0.0.jar:" \
+        -d out -sourcepath src $(find src/main/java -name "*.java") ;
         jar cf CustomMergeIntoConnector.jar -C out .
         ```
     * Add to the classpath.
         ```scala
-        import $cp.`hudi/CustomMergeIntoConnector.jar`
+        import $cp.`/path/to/CustomMergeIntoConnector.jar`
         ```
 
 
