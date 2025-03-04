@@ -90,4 +90,5 @@ wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/org/apache/spark/spar
 
 ## Todo
 * MERGE_ON_READ table vs Copy-On-Write.
-* https://hudi.apache.org/docs/table_types/
+    * https://hudi.apache.org/docs/table_types/
+* Rewrite python_starter notebook into spark app.
